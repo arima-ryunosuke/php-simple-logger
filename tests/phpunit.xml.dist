@@ -1,0 +1,23 @@
+<phpunit
+        bootstrap="bootstrap.php"
+        colors="true"
+        printerClass="\ryunosuke\PHPUnit\Printer\ProgressPrinter"
+        columns="100"
+>
+    <testsuites>
+        <testsuite name="tests">
+            <directory>./Test/</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <const name="REDIS_URL" value="redis://localhost:6379/1"/>
+        <const name="S3_URL" value="s3://minio:minio123@localhost:9000/stream-logger"/>
+    </php>
+
+    <coverage>
+        <include>
+            <directory suffix=".php">../src/SimpleLogger</directory>
+        </include>
+    </coverage>
+</phpunit>
