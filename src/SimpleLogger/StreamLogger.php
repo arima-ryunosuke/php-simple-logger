@@ -2,6 +2,7 @@
 
 namespace ryunosuke\SimpleLogger;
 
+use Closure;
 use DateTime;
 use Exception;
 use ryunosuke\SimpleLogger\FileType\AbstractFileType;
@@ -31,6 +32,7 @@ class StreamLogger extends AbstractLogger
         $options = array_replace([
             'mode'     => 'ab',
             'context'  => null,
+            'suffix'   => null,
             'flock'    => false,
             'flush'    => true,
             'filetype' => fn($extension) => AbstractFileType::createByExtension($extension),
@@ -45,8 +47,16 @@ class StreamLogger extends AbstractLogger
             ]);
         }
 
-        $this->handle   = fopen($filename, $options['mode'], false, $context);
-        $this->metadata = stream_get_meta_data($this->handle);
+        // normalize suffix
+        if ($options['suffix'] !== null) {
+            if (!$options['suffix'] instanceof Closure) {
+                $options['suffix'] = fn() => date($options['suffix']);
+            }
+        }
+
+        $logfile        = $this->_appendSuffix($filename, $options['suffix']);
+        $this->handle   = fopen($logfile, $options['mode'], false, $context);
+        $this->metadata = stream_get_meta_data($this->handle) + ['filename' => $filename];
         $this->filetype = $options['filetype'](pathinfo($filename, PATHINFO_EXTENSION));
         $this->options  = $options;
     }
@@ -69,7 +79,26 @@ class StreamLogger extends AbstractLogger
         $this->_close();
 
         $this->handle   = fopen($this->metadata['uri'], $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
-        $this->metadata = stream_get_meta_data($this->handle);
+        $this->metadata = stream_get_meta_data($this->handle) + $this->metadata; // keep filename
+    }
+
+    public function rotate(): bool
+    {
+        $logfile = $this->_appendSuffix($this->metadata['filename'], $this->options['suffix']);
+        if ($logfile !== $this->metadata['uri']) {
+            if (file_exists($logfile)) {
+                @unlink($logfile);
+            }
+
+            $this->_flush();
+            $this->_close();
+
+            $this->handle   = fopen($logfile, $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
+            $this->metadata = stream_get_meta_data($this->handle) + $this->metadata; // keep filename
+
+            return true;
+        }
+        return false;
     }
 
     public function setPresetPlugins(): self
@@ -120,6 +149,8 @@ class StreamLogger extends AbstractLogger
 
         $logarray = $log->arrayize(!($fileflags & AbstractFileType::FLAG_NESTING), !($fileflags & AbstractFileType::FLAG_DATATYPE));
         $logtext  = $this->filetype->encode($logarray);
+
+        $this->rotate();
 
         $this->_lock(LOCK_EX);
         fwrite($this->handle, $logtext);
@@ -192,5 +223,14 @@ class StreamLogger extends AbstractLogger
         }
 
         return $this->metadata['stream_type'] === 'STDIO';
+    }
+
+    private function _appendSuffix(string $filename, ?Closure $suffixer): string
+    {
+        if ($suffixer !== null) {
+            $pathinfo = pathinfo($filename);
+            $filename = "{$pathinfo['dirname']}/{$pathinfo['filename']}{$suffixer()}.{$pathinfo['extension']}";
+        }
+        return $filename;
     }
 }
