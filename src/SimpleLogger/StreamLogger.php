@@ -101,7 +101,7 @@ class StreamLogger extends AbstractLogger
         return false;
     }
 
-    public function setPresetPlugins(): self
+    public function setPresetPlugins(): static
     {
         // common
         $this->appendPlugin(
@@ -167,7 +167,7 @@ class StreamLogger extends AbstractLogger
                 try {
                     return flock($this->handle, $operation);
                 }
-                catch (Exception $e) {
+                catch (Exception) {
                     $this->methodCache[__METHOD__] = false;
                 }
             }
@@ -183,7 +183,7 @@ class StreamLogger extends AbstractLogger
                 try {
                     return fflush($this->handle);
                 }
-                catch (Exception $e) {
+                catch (Exception) {
                     $this->methodCache[__METHOD__] = false;
                 }
             }

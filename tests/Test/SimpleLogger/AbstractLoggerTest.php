@@ -25,7 +25,7 @@ class AbstractLoggerTest extends AbstractTestCase
                 return $log;
             }
 
-            public function jsonSerialize() { }
+            public function jsonSerialize(): mixed { }
         });
 
         that($logger)->getPlugins()->count(2);

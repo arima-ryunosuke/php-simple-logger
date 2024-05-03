@@ -4,7 +4,6 @@ namespace ryunosuke\SimpleLogger;
 
 use Psr\Log\LoggerInterface;
 use ryunosuke\SimpleLogger\Item\Log;
-use ryunosuke\SimpleLogger\Plugins;
 
 abstract class AbstractLogger implements LoggerInterface
 {
@@ -16,18 +15,18 @@ abstract class AbstractLogger implements LoggerInterface
         return $this->plugins;
     }
 
-    public function setPlugins(array $plugins): self
+    public function setPlugins(array $plugins): static
     {
         $this->plugins = $plugins;
         return $this;
     }
 
-    public function prependPlugin(Plugins\AbstractPlugin ...$plugins): self
+    public function prependPlugin(Plugins\AbstractPlugin ...$plugins): static
     {
         return $this->setPlugins(array_merge($plugins, $this->plugins));
     }
 
-    public function appendPlugin(Plugins\AbstractPlugin ...$plugins): self
+    public function appendPlugin(Plugins\AbstractPlugin ...$plugins): static
     {
         return $this->setPlugins(array_merge($this->plugins, $plugins));
     }

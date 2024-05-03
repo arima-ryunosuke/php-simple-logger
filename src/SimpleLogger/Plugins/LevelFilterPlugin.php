@@ -9,7 +9,7 @@ class LevelFilterPlugin extends AbstractPlugin
     private int $lowLevel;
     private int $highLevel;
 
-    public function __construct(/*int|string|array*/ $logLevel)
+    public function __construct(int|string|array $logLevel)
     {
         if (!is_array($logLevel)) {
             $logLevel = [$logLevel, 'EMERGENCY'];

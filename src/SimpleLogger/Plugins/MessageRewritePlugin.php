@@ -9,7 +9,7 @@ class MessageRewritePlugin extends AbstractPlugin
 {
     private Closure $rewriter;
 
-    public function __construct(/*string|callable*/ $rewriter)
+    public function __construct(string|callable $rewriter)
     {
         if (is_string($rewriter)) {
             $rewriter = fn($message) => sprintf($rewriter, $message);

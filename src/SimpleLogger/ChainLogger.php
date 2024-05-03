@@ -22,7 +22,7 @@ class ChainLogger implements LoggerInterface, LoggerAwareInterface
         $this->loggers = ['default' => $logger];
     }
 
-    public function appendLogger(LoggerInterface $logger, string $channel = null): self
+    public function appendLogger(LoggerInterface $logger, string $channel = null): static
     {
         if ($channel === null) {
             $this->loggers[] = $logger;
@@ -34,7 +34,7 @@ class ChainLogger implements LoggerInterface, LoggerAwareInterface
         return $this;
     }
 
-    public function removeLogger(string $channel): self
+    public function removeLogger(string $channel): static
     {
         unset($this->loggers[$channel]);
 

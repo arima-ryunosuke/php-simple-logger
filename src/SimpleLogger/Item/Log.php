@@ -30,17 +30,15 @@ class Log extends stdClass
         7 => LogLevel::DEBUG,
     ];
 
-    /** @var int|string */
-    public $level;
+    public int|string $level;
 
-    /** @var string|\Stringable|mixed */
-    public $message;
+    public mixed $message;
 
     public array $context;
 
     private array $order;
 
-    public function __construct($level, $message, array $context)
+    public function __construct(int|string $level, mixed $message, array $context)
     {
         $this->level   = $level;
         $this->message = $message;
