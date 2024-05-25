@@ -78,10 +78,10 @@ class ThrowableManglePlugin extends AbstractPlugin
             ]);
             $lines[] = "Stack trace:";
             foreach ($t->getTrace() as $n => $trace) {
-                $lines[] = vsprintf('#%d %s:%s %s(%s)', [
+                $lines[] = vsprintf('#%d %s:%d %s(%s)', [
                     $n,
-                    $trace['file'],
-                    $trace['line'],
+                    $trace['file'] ?? 'unknown',
+                    $trace['line'] ?? '?',
                     (isset($trace['class']) ? $trace['class'] . $trace['type'] : '') . $trace['function'],
                     $this->argumentsMangler($this->reflectTraceFunction($trace), $trace['args'] ?? [])->toString($this->argLimit),
                 ]);
@@ -155,7 +155,7 @@ class ThrowableManglePlugin extends AbstractPlugin
                     else {
                         $string = match (gettype($argument)) {
                             default                         => var_export($argument, true),
-                            'string'                        => var_export(mb_strimwidth($argument, 0, 1024, '...'), true),
+                            'string'                        => json_encode(mb_strimwidth($argument, 0, 1024, '...'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                             'NULL'                          => 'null',
                             'object'                        => sprintf('Object(%s)', get_debug_type($argument)),
                             'resource', 'resource (closed)' => (string) $argument,
