@@ -31,6 +31,18 @@ abstract class AbstractLogger implements LoggerInterface
         return $this->setPlugins(array_merge($this->plugins, $plugins));
     }
 
+    public function replacePlugins(Plugins\AbstractPlugin ...$plugins): static
+    {
+        foreach ($this->plugins as $n => $thisPlugin) {
+            foreach ($plugins as $plugin) {
+                if ($thisPlugin instanceof $plugin) {
+                    $this->plugins[$n] = $plugin;
+                }
+            }
+        }
+        return $this;
+    }
+
     public function log($level, $message, array $context = []): void
     {
         $log = new Log($level, $message, $context);

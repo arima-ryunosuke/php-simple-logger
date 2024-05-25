@@ -3,9 +3,9 @@
 namespace ryunosuke\Test\SimpleLogger;
 
 use ArrayLogger;
-use JsonSerializable;
 use ryunosuke\SimpleLogger\Item\Log;
 use ryunosuke\SimpleLogger\Plugins\AbstractPlugin;
+use ryunosuke\SimpleLogger\Plugins\MessageRewritePlugin;
 use ryunosuke\Test\AbstractTestCase;
 
 class AbstractLoggerTest extends AbstractTestCase
@@ -19,14 +19,8 @@ class AbstractLoggerTest extends AbstractTestCase
                 return strpos($log->message, "ok") === false ? null : $log;
             }
         });
-        $logger->prependPlugin(new class extends AbstractPlugin implements JsonSerializable {
-            public function apply(Log $log): ?Log
-            {
-                return $log;
-            }
-
-            public function jsonSerialize(): mixed { }
-        });
+        $logger->prependPlugin(new MessageRewritePlugin(fn($v) => strtoupper($v)));
+        $logger->replacePlugins(new MessageRewritePlugin(fn($v) => strtolower($v)));
 
         that($logger)->getPlugins()->count(2);
 
