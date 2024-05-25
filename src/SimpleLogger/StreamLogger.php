@@ -117,7 +117,7 @@ class StreamLogger extends AbstractLogger
 
         if ($fileflags & AbstractFileType::FLAG_PLAIN) {
             $this->appendPlugin(
-                new Plugins\ThrowableManglePlugin(true),
+                new Plugins\ThrowableManglePlugin(true, 'chains', /* for future scope (ini_get('zend.exception_ignore_args') ? 0 : 1024) */),
                 new Plugins\MessageStringifyPlugin(),
                 new Plugins\MessageRewritePlugin("[{time}] {level}: %s"),
             );
