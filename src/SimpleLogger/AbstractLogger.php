@@ -2,6 +2,7 @@
 
 namespace ryunosuke\SimpleLogger;
 
+use Closure;
 use Psr\Log\LoggerInterface;
 use ryunosuke\SimpleLogger\Item\Log;
 
@@ -40,6 +41,14 @@ abstract class AbstractLogger implements LoggerInterface
                 }
             }
         }
+        return $this;
+    }
+
+    public function sortPlugins(Closure $scorer): static
+    {
+        uksort($this->plugins, function ($a, $b) use ($scorer) {
+            return $scorer($this->plugins[$a], $a) <=> $scorer($this->plugins[$b], $b);
+        });
         return $this;
     }
 

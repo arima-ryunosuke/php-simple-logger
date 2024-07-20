@@ -103,42 +103,44 @@ class StreamLogger extends AbstractLogger
 
     public function setPresetPlugins(): static
     {
-        // common
-        $this->appendPlugin(
-            new Plugins\LevelNormalizePlugin(true),
-            new Plugins\ContextAppendPlugin([
+        // common before
+        $plugins = [
+            'LevelNormalize'  => new Plugins\LevelNormalizePlugin(true),
+            'TimeAppend'      => new Plugins\ContextAppendPlugin([
                 'time' => fn() => (new DateTime())->format(DateTime::RFC3339_EXTENDED),
             ]),
-            new Plugins\MessageCallbackPlugin(),
-        );
+            'MessageCallback' => new Plugins\MessageCallbackPlugin(),
+        ];
 
         // by filetype
         $fileflags = $this->filetype->getFlags();
 
         if ($fileflags & AbstractFileType::FLAG_PLAIN) {
-            $this->appendPlugin(
-                new Plugins\ThrowableManglePlugin(true, 'chains', /* for future scope (ini_get('zend.exception_ignore_args') ? 0 : 1024) */),
-                new Plugins\MessageStringifyPlugin(),
-                new Plugins\MessageRewritePlugin("[{time}] {level}: %s"),
-            );
+            $plugins = array_merge($plugins, [
+                'ThrowableMangle'  => new Plugins\ThrowableManglePlugin(true, 'chains', /* for future scope (ini_get('zend.exception_ignore_args') ? 0 : 1024) */),
+                'MessageStringify' => new Plugins\MessageStringifyPlugin(),
+                'MessageRewrite'   => new Plugins\MessageRewritePlugin("[{time}] {level}: %s"),
+            ]);
         }
 
         if ($fileflags & AbstractFileType::FLAG_NESTING) {
-            $this->appendPlugin(
-                new Plugins\ThrowableManglePlugin(false, 'traces'),
-            );
+            $plugins = array_merge($plugins, [
+                'ThrowableMangle' => new Plugins\ThrowableManglePlugin(false, 'traces'),
+            ]);
         }
         else {
-            $this->appendPlugin(
-                new Plugins\ThrowableManglePlugin(false, ''),
-            );
+            $plugins = array_merge($plugins, [
+                'ThrowableMangle' => new Plugins\ThrowableManglePlugin(false, ''),
+            ]);
         }
 
         if ($fileflags & AbstractFileType::FLAG_STRUCTURE) {
-            $this->appendPlugin(
-                new Plugins\ContextOrderPlugin(['time', 'level', 'message']),
-            );
+            $plugins = array_merge($plugins, [
+                'ContextOrder' => new Plugins\ContextOrderPlugin(['time', 'level', 'message']),
+            ]);
         }
+
+        $this->setPlugins($plugins);
 
         return $this;
     }
