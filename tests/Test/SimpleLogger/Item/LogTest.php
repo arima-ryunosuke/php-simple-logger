@@ -35,6 +35,12 @@ class LogTest extends AbstractTestCase
         ]);
         that($log)->interpolate()->message->is('debug test {stdclass} stringed message');
 
+        // consumption
+        $log = new Log('debug', '{level} test {a.b.c}, {A.B.C} message', ['a' => ['b' => ['c' => 'z']], 'A' => ['B' => ['C' => 'y', 'z']]]);
+        $log->setFilterConsumption(true);
+        that($log)->interpolate()->message->is('debug test z, y message');
+        that($log)->interpolate()->context->is(['A' => ['B' => ['z']]]);
+
         // exception message
         $log = new Log('debug', $e = new Exception(), []);
         that($log)->interpolate()->message->isSame($e);

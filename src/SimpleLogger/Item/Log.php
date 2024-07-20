@@ -38,12 +38,15 @@ class Log extends stdClass
 
     private array $order;
 
+    private bool $filterConsumption;
+
     public function __construct(int|string $level, mixed $message, array $context)
     {
-        $this->level   = $level;
-        $this->message = $message;
-        $this->context = $context;
-        $this->order   = [];
+        $this->level             = $level;
+        $this->message           = $message;
+        $this->context           = $context;
+        $this->order             = [];
+        $this->filterConsumption = false;
     }
 
     public function setOrder(array $order): self
@@ -52,10 +55,17 @@ class Log extends stdClass
         return $this;
     }
 
+    public function setFilterConsumption(bool $filterConsumption): self
+    {
+        $this->filterConsumption = $filterConsumption;
+        return $this;
+    }
+
     public function interpolate(): self
     {
         if (is_string($this->message)) {
-            $main = function (array $context, array $parents) use (&$main) {
+            $placeholder = $this->filterConsumption ? new stdClass() : null;
+            $main        = function (array $context, array $parents) use (&$main, $placeholder) {
                 foreach ($context as $key => $value) {
                     if (preg_match('#\A[a-zA-Z0-9_.]+\z#u', $key)) {
                         $keys   = $parents;
@@ -67,7 +77,14 @@ class Log extends stdClass
                         }
 
                         if (($string = self::stringifyOrNull($value)) !== null) {
-                            $this->message = str_replace("{" . implode('.', $keys) . "}", $string, $this->message);
+                            $this->message = str_replace("{" . implode('.', $keys) . "}", $string, $this->message, $count);
+                            if ($count && $placeholder) {
+                                $context = &$this->context;
+                                foreach ($keys as $key) {
+                                    $context = &$context[$key];
+                                }
+                                $context = $placeholder;
+                            }
                         }
                     }
                 }
@@ -75,6 +92,25 @@ class Log extends stdClass
 
             // level is specially treated as part of context
             $main($this->context + ['level' => $this->level], []);
+
+            // filter consumption empty
+            $array_filter_recursive = function ($array, $callback) use (&$array_filter_recursive): array {
+                foreach ($array as $k => $v) {
+                    if (is_array($v)) {
+                        $array[$k] = $array_filter_recursive($v, $callback);
+                        if (!$array[$k]) {
+                            unset($array[$k]);
+                        }
+                    }
+                    else {
+                        if (!$callback($v)) {
+                            unset($array[$k]);
+                        }
+                    }
+                }
+                return $array;
+            };
+            $this->context          = $array_filter_recursive($this->context, fn($v) => $v !== $placeholder);
         }
 
         return $this;
