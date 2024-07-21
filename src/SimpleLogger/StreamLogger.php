@@ -105,6 +105,7 @@ class StreamLogger extends AbstractLogger
     {
         // common before
         $plugins = [
+            'LevelFromPhp'    => new Plugins\LevelFromPhpPlugin(),
             'LevelNormalize'  => new Plugins\LevelNormalizePlugin(true),
             'TimeAppend'      => new Plugins\ContextAppendPlugin([
                 'time' => fn() => (new DateTime())->format(DateTime::RFC3339_EXTENDED),
