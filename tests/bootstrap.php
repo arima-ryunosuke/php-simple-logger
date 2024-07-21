@@ -56,13 +56,6 @@ if (S3_URL) {
     S3Stream::register(S3_URL);
 }
 
-if (!interface_exists(Stringable::class)) {
-    interface Stringable
-    {
-        public function __toString(): string;
-    }
-}
-
 class ArrayLogger extends AbstractLogger
 {
     use LoggerTrait;

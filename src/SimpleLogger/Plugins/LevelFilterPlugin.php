@@ -2,6 +2,7 @@
 
 namespace ryunosuke\SimpleLogger\Plugins;
 
+use Psr\Log\LogLevel;
 use ryunosuke\SimpleLogger\Item\Log;
 
 class LevelFilterPlugin extends AbstractPlugin
@@ -12,7 +13,7 @@ class LevelFilterPlugin extends AbstractPlugin
     public function __construct(int|string|array $logLevel)
     {
         if (!is_array($logLevel)) {
-            $logLevel = [$logLevel, 'EMERGENCY'];
+            $logLevel = [$logLevel, LogLevel::EMERGENCY];
         }
 
         // 0:EMERGENCY ~ 7:DEBUG

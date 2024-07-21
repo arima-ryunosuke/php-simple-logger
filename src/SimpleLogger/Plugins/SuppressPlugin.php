@@ -23,7 +23,7 @@ class SuppressPlugin extends AbstractPlugin
         };
 
         try {
-            $this->suppressions = (include $this->rememberLocation) ?: [];
+            $this->suppressions = @(include $this->rememberLocation) ?: [];
         }
         catch (Throwable) {
             $this->suppressions = [];

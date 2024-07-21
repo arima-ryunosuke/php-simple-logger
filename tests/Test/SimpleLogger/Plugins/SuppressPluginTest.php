@@ -29,7 +29,7 @@ class SuppressPluginTest extends AbstractTestCase
     function test_lifecycle()
     {
         $log = sys_get_temp_dir() . '/agg2.txt';
-        @unlink($log);
+        file_put_contents($log, '<?php hoge');
         $plugin = new SuppressPlugin(1, $log);
 
         that($plugin)->apply(new Log('debug', 'message1', []))->isNotNull();

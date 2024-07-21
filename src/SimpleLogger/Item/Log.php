@@ -147,8 +147,7 @@ class Log extends stdClass
             return (int) $logLevel;
         }
 
-        $throw = function ($e) { throw $e; }; // under php8.0
-        return static::LOG_LEVELS[strtolower($logLevel)] ?? $throw(new InvalidArgumentException("loglevel '{$logLevel}' is not defined."));
+        return static::LOG_LEVELS[strtolower($logLevel)] ?? throw new InvalidArgumentException("loglevel '{$logLevel}' is not defined.");
     }
 
     public static function levelAsString($logLevel): string
@@ -158,8 +157,7 @@ class Log extends stdClass
             return (string) $logLevel;
         }
 
-        $throw = function ($e) { throw $e; }; // under php8.0
-        return static::LOG_LABELS[$logLevel] ?? $throw(new InvalidArgumentException("loglevel '{$logLevel}' is not defined."));
+        return static::LOG_LABELS[$logLevel] ?? throw new InvalidArgumentException("loglevel '{$logLevel}' is not defined.");
     }
 
     public static function stringifyOrNull($value): ?string
