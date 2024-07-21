@@ -81,6 +81,14 @@ class LogTest extends AbstractTestCase
             "data1"   => "DATA1",
             "level"   => "debug",
         ]);
+
+        // unset level
+        $log = new Log('debug', '{level} test {data1} message', ['data1' => 'DATA1']);
+        $log->setLevelUnset(true);
+        that($log)->arrayize(false, false)->isSame([
+            "message" => "{level} test {data1} message",
+            "data1"   => "DATA1",
+        ]);
     }
 
     function test_lconv()

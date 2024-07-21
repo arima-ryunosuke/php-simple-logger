@@ -38,6 +38,8 @@ class Log extends stdClass
 
     private array $order;
 
+    private bool $levelUnset;
+
     private bool $filterConsumption;
 
     public function __construct(int|string $level, mixed $message, array $context)
@@ -46,12 +48,19 @@ class Log extends stdClass
         $this->message           = $message;
         $this->context           = $context;
         $this->order             = [];
+        $this->levelUnset        = false;
         $this->filterConsumption = false;
     }
 
     public function setOrder(array $order): self
     {
         $this->order = array_combine($order, $order);
+        return $this;
+    }
+
+    public function setLevelUnset(bool $unset): self
+    {
+        $this->levelUnset = $unset;
         return $this;
     }
 
@@ -91,7 +100,8 @@ class Log extends stdClass
             };
 
             // level is specially treated as part of context
-            $main($this->context + ['level' => $this->level], []);
+            $level = $this->levelUnset ? [] : ['level' => $this->level];
+            $main($this->context + $level, []);
 
             // filter consumption empty
             $array_filter_recursive = function ($array, $callback) use (&$array_filter_recursive): array {
@@ -122,6 +132,10 @@ class Log extends stdClass
             'level'   => $this->level,
             'message' => $this->message,
         ], $this->context);
+
+        if ($this->levelUnset) {
+            unset($entries['level']);
+        }
 
         foreach ($entries as $key => $value) {
             $strv = self::stringifyOrNull($value);
