@@ -105,6 +105,7 @@ class StreamLogger extends AbstractLogger
     {
         // common before
         $plugins = [
+            'LevelAuto'       => new Plugins\LevelAutoPlugin(),
             'LevelFromPhp'    => new Plugins\LevelFromPhpPlugin(),
             'LevelNormalize'  => new Plugins\LevelNormalizePlugin(true),
             'TimeAppend'      => new Plugins\ContextAppendPlugin([

@@ -8,7 +8,7 @@ use stdClass;
 
 class Log extends stdClass
 {
-    protected const LOG_LEVELS = [
+    public const LOG_LEVELS = [
         LogLevel::EMERGENCY => 0,
         LogLevel::ALERT     => 1,
         LogLevel::CRITICAL  => 2,
@@ -19,7 +19,7 @@ class Log extends stdClass
         LogLevel::DEBUG     => 7,
     ];
 
-    protected const LOG_LABELS = [
+    public const LOG_LABELS = [
         0 => LogLevel::EMERGENCY,
         1 => LogLevel::ALERT,
         2 => LogLevel::CRITICAL,
@@ -30,7 +30,33 @@ class Log extends stdClass
         7 => LogLevel::DEBUG,
     ];
 
-    public int|string $level;
+    public const LOG_PHP = [
+        // emergency
+        E_CORE_ERROR        => LogLevel::EMERGENCY,
+        // alert
+        E_PARSE             => LogLevel::ALERT,
+        // critical
+        E_COMPILE_ERROR     => LogLevel::CRITICAL,
+        // error
+        E_ERROR             => LogLevel::ERROR,
+        E_RECOVERABLE_ERROR => LogLevel::ERROR,
+        E_USER_ERROR        => LogLevel::ERROR,
+        // warning
+        E_CORE_WARNING      => LogLevel::WARNING,
+        E_COMPILE_WARNING   => LogLevel::WARNING,
+        E_WARNING           => LogLevel::WARNING,
+        E_USER_WARNING      => LogLevel::WARNING,
+        // notice
+        E_NOTICE            => LogLevel::NOTICE,
+        E_USER_NOTICE       => LogLevel::NOTICE,
+        // info
+        E_DEPRECATED        => LogLevel::INFO,
+        E_USER_DEPRECATED   => LogLevel::INFO,
+        // debug
+        E_STRICT            => LogLevel::DEBUG,
+    ];
+
+    public null|int|string $level;
 
     public mixed $message;
 
@@ -42,7 +68,7 @@ class Log extends stdClass
 
     private bool $filterConsumption;
 
-    public function __construct(int|string $level, mixed $message, array $context)
+    public function __construct(null|int|string $level, mixed $message, array $context)
     {
         $this->level             = $level;
         $this->message           = $message;
