@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpPossiblePolymorphicInvocationInspection */
 
 namespace ryunosuke\Test\SimpleLogger\FileType;
 
@@ -50,14 +50,19 @@ class AbstractFileTypeTest extends AbstractTestCase
 
         $filetype = AbstractFileType::createByExtension('html');
         that($filetype)->getFlags()->is(AbstractFileType::FLAG_ONELINER | AbstractFileType::FLAG_STRUCTURE | AbstractFileType::FLAG_NESTING | AbstractFileType::FLAG_COMPLETION);
-        that($filetype)->encode($data + $nest)->insteadof(fn($v) => preg_replace("# style='.*?'#", '', $v))->is("<dl><dt>level</dt><dd>99</dd><dt>message</dt><dd>hoge</dd><dt>nest</dt><dd><ol><li><dl><dt>id</dt><dd>1</dd><dt>name</dt><dd>hoge</dd></dl></li><li><dl><dt>id</dt><dd>2</dd><dt>name</dt><dd>fuga</dd></dl></li></ol></dd></dl><hr>\n");
+        that($filetype)->head($data)->is("<style>ol{font-family:monospace; padding:0;}dl{font-family:monospace; display:grid; grid-template-columns:max-content auto;}dt{font-weight:bold;}</style>\n");
+        that($filetype)->encode($data + $nest)->is("<dl><dt>level</dt><dd>99</dd><dt>message</dt><dd>hoge</dd><dt>nest</dt><dd><ol><li><dl><dt>id</dt><dd>1</dd><dt>name</dt><dd>hoge</dd></dl></li><li><dl><dt>id</dt><dd>2</dd><dt>name</dt><dd>fuga</dd></dl></li></ol></dd></dl><hr>\n");
 
-        $filetype = AbstractFileType::createByExtension('csv');
+        $filetype             = AbstractFileType::createByExtension('csv');
+        $filetype->withHeader = true;
         that($filetype)->getFlags()->is(AbstractFileType::FLAG_STRUCTURE | AbstractFileType::FLAG_COMPLETION);
+        that($filetype)->head($data)->is("level,message\n");
         that($filetype)->encode($data)->is("99,hoge\n");
 
-        $filetype = AbstractFileType::createByExtension('tsv');
+        $filetype             = AbstractFileType::createByExtension('tsv');
+        $filetype->withHeader = false;
         that($filetype)->getFlags()->is(AbstractFileType::FLAG_STRUCTURE | AbstractFileType::FLAG_COMPLETION);
+        that($filetype)->head($data)->is("");
         that($filetype)->encode($data)->is("99\thoge\n");
 
         $filetype = AbstractFileType::createByExtension('ltsv');

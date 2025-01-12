@@ -45,6 +45,11 @@ class FileSimpleStreamWrapper
     {
         throw new RuntimeException();
     }
+
+    public function stream_stat()
+    {
+        throw new RuntimeException();
+    }
 }
 
 stream_wrapper_register('file-simple', FileSimpleStreamWrapper::class);

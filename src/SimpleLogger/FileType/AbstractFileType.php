@@ -22,9 +22,9 @@ abstract class AbstractFileType
             case "html":
                 return new Html();
             case "csv":
-                return new Csv(",");
+                return new Csv(",", false);
             case "tsv":
-                return new Csv("\t");
+                return new Csv("\t", false);
             case "ltsv":
                 return new Ltsv();
             case "json":
@@ -50,6 +50,11 @@ abstract class AbstractFileType
     }
 
     abstract public function getFlags(): int;
+
+    public function head(array $logdata): string
+    {
+        return '';
+    }
 
     abstract public function encode(array $logdata): string;
 }

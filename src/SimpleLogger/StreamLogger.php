@@ -13,10 +13,11 @@ class StreamLogger extends AbstractLogger
     use LoggerTrait;
 
     /** @var resource */
-    private                  $handle;
-    private array            $metadata;
-    private AbstractFileType $filetype;
-    private array            $options;
+    private       $handle;
+    private array $metadata;
+    /*readonly*/
+    public AbstractFileType $filetype;
+    private array           $options;
 
     private array $methodCache = [];
 
@@ -56,7 +57,7 @@ class StreamLogger extends AbstractLogger
 
         $logfile        = $this->_appendSuffix($filename, $options['suffix']);
         $this->handle   = fopen($logfile, $options['mode'], false, $context);
-        $this->metadata = stream_get_meta_data($this->handle) + ['filename' => $filename];
+        $this->metadata = stream_get_meta_data($this->handle) + ['filename' => $filename, 'first' => true];
         $this->filetype = $options['filetype'](pathinfo($filename, PATHINFO_EXTENSION));
         $this->options  = $options;
     }
@@ -79,7 +80,7 @@ class StreamLogger extends AbstractLogger
         $this->_close();
 
         $this->handle   = fopen($this->metadata['uri'], $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
-        $this->metadata = stream_get_meta_data($this->handle) + $this->metadata; // keep filename
+        $this->metadata = stream_get_meta_data($this->handle) + ['first' => true] + $this->metadata; // keep filename
     }
 
     public function rotate(): bool
@@ -94,7 +95,7 @@ class StreamLogger extends AbstractLogger
             $this->_close();
 
             $this->handle   = fopen($logfile, $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
-            $this->metadata = stream_get_meta_data($this->handle) + $this->metadata; // keep filename
+            $this->metadata = stream_get_meta_data($this->handle) + ['first' => true] + $this->metadata; // keep filename
 
             return true;
         }
@@ -157,10 +158,30 @@ class StreamLogger extends AbstractLogger
         $this->rotate();
 
         $this->_lock(LOCK_EX);
+        if ($this->metadata['first']) {
+            $this->metadata['first'] = false;
+            if (($this->_fstat()['size'] ?? null) === 0) {
+                fwrite($this->handle, $this->filetype->head($logarray));
+            }
+        }
         fwrite($this->handle, $logtext);
         $this->_lock(LOCK_UN);
 
         $this->_flush();
+    }
+
+    protected function _fstat(): ?array
+    {
+        $this->methodCache[__METHOD__] ??= $this->_supportsByMetadata('stream_stat');
+        if ($this->methodCache[__METHOD__]) {
+            try {
+                return fstat($this->handle);
+            }
+            catch (Exception) {
+                $this->methodCache[__METHOD__] = false;
+            }
+        }
+        return null;
     }
 
     protected function _lock(int $operation): ?bool

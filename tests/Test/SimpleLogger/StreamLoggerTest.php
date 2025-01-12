@@ -71,6 +71,25 @@ class StreamLoggerTest extends AbstractTestCase
         that("file://$directory/file-log-2.txt")->fileNotExists();
     }
 
+    function test_first()
+    {
+        $directory = $this->emptyDirectory();
+
+        $logger = new StreamLogger("file://$directory/file-log.html");
+        $logger->debug('hoge');
+
+        $logger = new StreamLogger("file://$directory/file-log.html");
+        $logger->debug('hoge');
+
+        $logger->reopen();
+        $logger->debug('hoge');
+
+        that(file("file://$directory/file-log.html"))->matchesCountEquals([
+            '#<style>#' => 1,
+            '#hoge#'    => 3,
+        ]);
+    }
+
     function test_setPresetPlugins()
     {
         $directory = $this->emptyDirectory();
@@ -105,6 +124,7 @@ class StreamLoggerTest extends AbstractTestCase
         ]);
         that($logger)->_lock(LOCK_EX)->isTrue();
         that($logger)->_flush()->isTrue();
+        that($logger)->_fstat()->isArray();
         $logger->debug('message');
         unset($logger);
         that("$directory/file-log.txt")->fileEquals("message\n");
@@ -114,6 +134,7 @@ class StreamLoggerTest extends AbstractTestCase
         ]);
         that($logger)->_lock(LOCK_EX)->isNull();
         that($logger)->_flush()->isNull();
+        that($logger)->_fstat()->isNull();
         $logger->debug('message');
         unset($logger);
         that("$directory/simple-log.txt")->fileEquals("message\n");

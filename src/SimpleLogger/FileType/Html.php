@@ -9,6 +9,16 @@ class Html extends AbstractFileType
         return self::FLAG_ONELINER | self::FLAG_STRUCTURE | self::FLAG_NESTING | self::FLAG_COMPLETION;
     }
 
+    public function head(array $logdata): string
+    {
+        $styles = [
+            'ol{font-family:monospace; padding:0;}',
+            'dl{font-family:monospace; display:grid; grid-template-columns:max-content auto;}',
+            'dt{font-weight:bold;}',
+        ];
+        return "<style>" . implode('', $styles) . "</style>\n";
+    }
+
     public function encode(array $logdata): string
     {
         return $this->render($logdata) . "<hr>\n";
@@ -34,9 +44,9 @@ class Html extends AbstractFileType
 
     private function dldtdd(array $array): string
     {
-        $dl = "<dl style='font-family:monospace; display:grid; grid-template-columns:max-content auto;'>";
+        $dl = "<dl>";
         foreach ($array as $key => $value) {
-            $dt = "<dt style='font-weight:bold;'>{$this->text($key)}</dt>";
+            $dt = "<dt>{$this->text($key)}</dt>";
             $dd = "<dd>{$this->render($value)}</dd>";
             $dl .= $dt . $dd;
         }
@@ -47,7 +57,7 @@ class Html extends AbstractFileType
 
     private function olli(array $array): string
     {
-        $ol = "<ol style='font-family:monospace; padding:0;'>";
+        $ol = "<ol>";
         foreach ($array as $value) {
             $li = "<li>{$this->render($value)}</li>";
             $ol .= $li;
