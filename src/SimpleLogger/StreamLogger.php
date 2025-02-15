@@ -257,7 +257,7 @@ class StreamLogger extends AbstractLogger
     {
         if ($suffixer !== null) {
             $pathinfo = pathinfo($filename);
-            $filename = "{$pathinfo['dirname']}/{$pathinfo['filename']}{$suffixer()}.{$pathinfo['extension']}";
+            $filename = "{$pathinfo['dirname']}/{$pathinfo['filename']}{$suffixer($this->metadata['uri'] ?? null)}.{$pathinfo['extension']}";
         }
         return $filename;
     }

@@ -42,9 +42,13 @@ class StreamLoggerTest extends AbstractTestCase
         $parts[]   = '/../';
         $directory = implode('/' . DIRECTORY_SEPARATOR, $parts);
 
+        $files  = [];
         $seq    = 0;
         $logger = new StreamLogger("$directory/file-log.txt", [
-            'suffix' => function () use (&$seq) { return $seq; },
+            'suffix' => function ($logfile) use (&$seq, &$files) {
+                $files[] = $logfile;
+                return $seq;
+            },
         ]);
         that($logger)->rotate()->is(false);
         $seq++;
@@ -53,6 +57,11 @@ class StreamLoggerTest extends AbstractTestCase
         that($logger)->rotate()->is(true);
         that($logger)->rotate()->is(false);
         that($logger)->rotate()->is(false);
+
+        that($files)->is([
+            null,
+            strtr("file://{$directory}file-log0.txt", ['\\' => '/']),
+        ]);
     }
 
     function test_first()
