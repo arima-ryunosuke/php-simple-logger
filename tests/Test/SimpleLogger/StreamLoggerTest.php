@@ -47,8 +47,9 @@ class StreamLoggerTest extends AbstractTestCase
             'suffix' => function () use (&$seq) { return $seq; },
         ]);
         that($logger)->rotate()->is(false);
-        that($logger)->rotate()->is(false);
         $seq++;
+        that($logger)->rotate()->is(false);
+        sleep(3);
         that($logger)->rotate()->is(true);
         that($logger)->rotate()->is(false);
         that($logger)->rotate()->is(false);
@@ -158,8 +159,9 @@ class StreamLoggerTest extends AbstractTestCase
             'suffix' => function () use (&$seq) { return "-" . $seq; },
         ]);
         $logger->debug('message1');
-        $logger->debug('message2');
         $seq++;
+        $logger->debug('message2');
+        sleep(3);
         $logger->debug('message3');
         unset($logger);
         that(REDIS_URL . "/log-0.txt")->fileEquals("message1\nmessage2\n");
@@ -190,8 +192,9 @@ class StreamLoggerTest extends AbstractTestCase
             'suffix' => function () use (&$seq) { return "-" . $seq; },
         ]);
         $logger->debug('message1');
-        $logger->debug('message2');
         $seq++;
+        $logger->debug('message2');
+        sleep(3);
         $logger->debug('message3');
         unset($logger);
         that(S3_URL . "/log-0.txt")->fileEquals("message1\nmessage2\n");

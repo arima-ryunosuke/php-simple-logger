@@ -19,6 +19,7 @@ class StreamLogger extends AbstractLogger
     public AbstractFileType $filetype;
     private array           $options;
 
+    private float $lastRotationTime;
     private array $methodCache = [];
 
     public function __construct(string $filename, array $options = [])
@@ -87,12 +88,20 @@ class StreamLogger extends AbstractLogger
 
     public function rotate(): bool
     {
-        $logfile = $this->_appendSuffix($this->metadata['filename'], $this->options['suffix']);
-        if ($logfile !== $this->metadata['uri']) {
-            $this->reopen($logfile);
+        // don't have to do it every time, do it sometimes
+        $this->lastRotationTime ??= microtime(true);
 
-            return true;
+        if ((microtime(true) - $this->lastRotationTime) >= 2) {
+            $this->lastRotationTime = microtime(true);
+
+            $logfile = $this->_appendSuffix($this->metadata['filename'], $this->options['suffix']);
+            if ($logfile !== $this->metadata['uri']) {
+                $this->reopen($logfile);
+
+                return true;
+            }
         }
+
         return false;
     }
 
