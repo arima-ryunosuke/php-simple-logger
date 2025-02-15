@@ -127,6 +127,9 @@ monolog における Processer は Plugin 機構を用いています。
 - SuppressPlugin
     - 指定した秒数の間、同一ログの出力を抑制します
     - 基本的には DEBUG レベルで用います
+- TagFilterPlugin
+    - コンテキストに指定した tag が含まれている場合にログるようになります
+    - ChainLogger で集約して、各々のロガーが書き込みという場合に使えます
 - ThrowableManglePlugin
     - 例外オブジェクトをよしなにハンドリングします
     - ログメッセージ自体が Throwable であるとか {exception} コンテキストがあるかなどでなんとかして Throwable を見やすく整形します
@@ -157,6 +160,14 @@ MIT
 - メジャー: 大規模な互換性破壊の際にアップします（アーキテクチャ、クラス構造の変更など）
 - マイナー: 小規模な互換性破壊の際にアップします（引数の変更、タイプヒントの追加など）
 - パッチ: 互換性破壊はありません（デフォルト引数の追加や、新たなクラスの追加、コードフォーマットなど）
+
+### 1.1.7
+
+- [feature] TagFilterPlugin を追加
+- [feature] basename 違いのインスタンスを返す withBasename を追加
+- [feature] suffix コールバックに現在のファイル名が渡ってくるよう変更
+- [feature] suffix 頻度を下げる機能
+- [fixbug] 別プロセスのログが失われる不具合
 
 ### 1.1.6
 
