@@ -54,23 +54,6 @@ class StreamLoggerTest extends AbstractTestCase
         that($logger)->rotate()->is(false);
     }
 
-    function test_autorotate()
-    {
-        $directory = $this->emptyDirectory();
-
-        $seq    = 0;
-        $logger = new StreamLogger("file://$directory/file-log.txt", [
-            'suffix' => function () use (&$seq) { return "-" . ($seq++ % 2); },
-        ]);
-        $logger->debug('1');
-        $logger->info('2');
-        $logger->notice('3');
-        that("file://$directory/file-log.txt")->fileNotExists();
-        that("file://$directory/file-log-0.txt")->fileEquals("2\n"); // not contain "1"
-        that("file://$directory/file-log-1.txt")->fileEquals("3\n");
-        that("file://$directory/file-log-2.txt")->fileNotExists();
-    }
-
     function test_first()
     {
         $directory = $this->emptyDirectory();
@@ -168,15 +151,18 @@ class StreamLoggerTest extends AbstractTestCase
         that($logfile)->fileEquals("message1\nmessage2\n");
 
         // rotate
+        @unlink(REDIS_URL . "/log-0.txt");
+        @unlink(REDIS_URL . "/log-1.txt");
         $seq    = 0;
         $logger = new StreamLogger($logfile, [
-            'suffix' => function () use (&$seq) { return "-" . ($seq++ % 2); },
+            'suffix' => function () use (&$seq) { return "-" . $seq; },
         ]);
         $logger->debug('message1');
         $logger->debug('message2');
+        $seq++;
         $logger->debug('message3');
         unset($logger);
-        that(REDIS_URL . "/log-0.txt")->fileEquals("message2\n"); // not contain "message1"
+        that(REDIS_URL . "/log-0.txt")->fileEquals("message1\nmessage2\n");
         that(REDIS_URL . "/log-1.txt")->fileEquals("message3\n");
         that(REDIS_URL . "/log-2.txt")->fileNotExists();
     }
@@ -197,15 +183,18 @@ class StreamLoggerTest extends AbstractTestCase
         that($logfile)->fileEquals("message1\nmessage2\n");
 
         // rotate
+        @unlink(S3_URL . "/log-0.txt");
+        @unlink(S3_URL . "/log-1.txt");
         $seq    = 0;
         $logger = new StreamLogger($logfile, [
-            'suffix' => function () use (&$seq) { return "-" . ($seq++ % 2); },
+            'suffix' => function () use (&$seq) { return "-" . $seq; },
         ]);
         $logger->debug('message1');
         $logger->debug('message2');
+        $seq++;
         $logger->debug('message3');
         unset($logger);
-        that(S3_URL . "/log-0.txt")->fileEquals("message2\n"); // not contain "message1"
+        that(S3_URL . "/log-0.txt")->fileEquals("message1\nmessage2\n");
         that(S3_URL . "/log-1.txt")->fileEquals("message3\n");
         that(S3_URL . "/log-2.txt")->fileNotExists();
     }

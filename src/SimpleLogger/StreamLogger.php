@@ -74,12 +74,14 @@ class StreamLogger extends AbstractLogger
         }
     }
 
-    public function reopen(): void
+    public function reopen(?string $newfile = null): void
     {
+        $newfile ??= $this->metadata['uri'];
+
         $this->_flush();
         $this->_close();
 
-        $this->handle   = fopen($this->metadata['uri'], $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
+        $this->handle   = fopen($newfile, $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
         $this->metadata = stream_get_meta_data($this->handle) + ['first' => true] + $this->metadata; // keep filename
     }
 
@@ -87,15 +89,7 @@ class StreamLogger extends AbstractLogger
     {
         $logfile = $this->_appendSuffix($this->metadata['filename'], $this->options['suffix']);
         if ($logfile !== $this->metadata['uri']) {
-            if (file_exists($logfile)) {
-                @unlink($logfile);
-            }
-
-            $this->_flush();
-            $this->_close();
-
-            $this->handle   = fopen($logfile, $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
-            $this->metadata = stream_get_meta_data($this->handle) + ['first' => true] + $this->metadata; // keep filename
+            $this->reopen($logfile);
 
             return true;
         }
