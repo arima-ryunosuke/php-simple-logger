@@ -75,6 +75,17 @@ class StreamLogger extends AbstractLogger
         }
     }
 
+    public function withBasename(string $basename): static
+    {
+        $pathinfo = pathinfo($this->metadata['filename']);
+        $filename = "{$pathinfo['dirname']}//$basename";
+
+        $that = new static($filename, $this->options);
+        $that->setPlugins($this->getPlugins());
+
+        return $that;
+    }
+
     public function reopen(?string $newfile = null): void
     {
         $newfile ??= $this->metadata['uri'];

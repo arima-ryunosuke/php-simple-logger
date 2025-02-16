@@ -2,6 +2,7 @@
 
 namespace ryunosuke\Test\SimpleLogger;
 
+use ryunosuke\SimpleLogger\Plugins\LevelFilterPlugin;
 use ryunosuke\SimpleLogger\StreamLogger;
 use ryunosuke\Test\AbstractTestCase;
 
@@ -19,6 +20,19 @@ class StreamLoggerTest extends AbstractTestCase
         that($logger)->metadata['mode']->is('a');
         that($logger)->metadata['uri']->is(strtr("file://$directory/file-log" . date('-His') . ".txt", ['\\' => '/']));
         that($logger)->metadata['filename']->is(strtr("file://$directory/file-log.txt", ['\\' => '/']));
+    }
+
+    function test_withBasename()
+    {
+        $directory = $this->emptyDirectory();
+
+        $dummy = new StreamLogger("file://$directory/file-log.txt");
+        $dummy->appendPlugin(new LevelFilterPlugin('notice'));
+        $logger = $dummy->withBasename('file-log2.txt');
+        $logger->debug('1');
+        $logger->info('2');
+        $logger->notice('3');
+        that("file://$directory/file-log2.txt")->fileEquals("3\n");
     }
 
     function test_reopen()
