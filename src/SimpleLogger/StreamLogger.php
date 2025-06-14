@@ -185,82 +185,65 @@ class StreamLogger extends AbstractLogger
 
     protected function _fstat(): ?array
     {
-        $this->methodCache[__METHOD__] ??= $this->_supportsByMetadata('stream_stat');
-        if ($this->methodCache[__METHOD__]) {
-            try {
-                return fstat($this->handle);
-            }
-            catch (Exception) {
-                $this->methodCache[__METHOD__] = false;
-            }
-        }
-        return null;
+        return $this->_tryStreamMethod('stream_stat', $this->handle);
     }
 
     protected function _lock(int $operation): ?bool
     {
-        if ($this->options['flock']) {
-            $this->methodCache[__METHOD__] ??= $this->_supportsByMetadata('stream_lock');
-            if ($this->methodCache[__METHOD__]) {
-                try {
-                    return flock($this->handle, $operation);
-                }
-                catch (Exception) {
-                    $this->methodCache[__METHOD__] = false;
-                }
-            }
+        if (!$this->options['flock']) {
+            return null;
         }
-        return null;
+        return $this->_tryStreamMethod('stream_lock', $this->handle, $operation);
     }
 
     protected function _flush(): ?bool
     {
-        if ($this->options['flush']) {
-            $this->methodCache[__METHOD__] ??= $this->_supportsByMetadata('stream_flush');
-            if ($this->methodCache[__METHOD__]) {
-                try {
-                    return fflush($this->handle);
-                }
-                catch (Exception) {
-                    $this->methodCache[__METHOD__] = false;
-                }
-            }
+        if (!$this->options['flush']) {
+            return null;
         }
-        return null;
+        return $this->_tryStreamMethod('stream_flush', $this->handle);
     }
 
     protected function _close(): ?bool
     {
-        $this->methodCache[__METHOD__] ??= $this->_supportsByMetadata('stream_close');
-        if ($this->methodCache[__METHOD__]) {
-            return fclose($this->handle);
-        }
-        return null;
+        return $this->_tryStreamMethod('stream_close', $this->handle);
     }
 
-    private function _supportsByMetadata(string $methodName): bool
+    private function _tryStreamMethod(string $methodName, ...$args): mixed
     {
-        if (is_object($this->metadata['wrapper_data'] ?? null)) {
-            if (method_exists($this->metadata['wrapper_data'], $methodName)) {
-                // future scope: treat never type as not implemented.
-                // @codeCoverageIgnoreStart
-                if (version_compare(PHP_VERSION, 8.1) >= 0) {
-                    $refmethod = new \ReflectionMethod($this->metadata['wrapper_data'], $methodName);
-                    if ($rtype = $refmethod->getReturnType()) {
-                        if ($rtype instanceof \ReflectionNamedType) {
-                            if ($rtype->isBuiltin() && $rtype->getName() === 'never') {
-                                return false;
+        $this->methodCache[$methodName] ??= (function () use ($methodName) {
+            if (is_object($this->metadata['wrapper_data'] ?? null)) {
+                if (method_exists($this->metadata['wrapper_data'], $methodName)) {
+                    // future scope: treat never type as not implemented.
+                    // @codeCoverageIgnoreStart
+                    if (version_compare(PHP_VERSION, 8.1) >= 0) {
+                        $refmethod = new \ReflectionMethod($this->metadata['wrapper_data'], $methodName);
+                        if ($rtype = $refmethod->getReturnType()) {
+                            if ($rtype instanceof \ReflectionNamedType) {
+                                if ($rtype->isBuiltin() && $rtype->getName() === 'never') {
+                                    return false;
+                                }
                             }
                         }
                     }
+                    // @codeCoverageIgnoreEnd
+                    return true;
                 }
-                // @codeCoverageIgnoreEnd
-                return true;
+                return false;
             }
-            return false;
-        }
+            return $this->metadata['stream_type'] === 'STDIO';
+        })();
 
-        return $this->metadata['stream_type'] === 'STDIO';
+        if ($this->methodCache[$methodName]) {
+            try {
+                $function = strtr($methodName, ['stream_' => 'f']);
+                return $function(...$args);
+            }
+            catch (Exception) {
+                $this->methodCache[$methodName] = false;
+            }
+        }
+        return null;
     }
 
     private function _appendSuffix(string $filename, ?Closure $suffixer): string

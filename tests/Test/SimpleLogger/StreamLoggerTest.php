@@ -152,6 +152,16 @@ class StreamLoggerTest extends AbstractTestCase
         unset($logger);
         that("$directory/simple-log.txt")->fileEquals("message\n");
 
+        $logger = new StreamLogger("file://$directory/false-log.txt", [
+            'flock' => false,
+            'flush' => false,
+        ]);
+        that($logger)->_lock(LOCK_EX)->isNull();
+        that($logger)->_flush()->isNull();
+        $logger->debug('message');
+        unset($logger);
+        that("$directory/false-log.txt")->fileEquals("message\n");
+
         gc_collect_cycles();
     }
 
