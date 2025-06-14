@@ -139,8 +139,7 @@ class StreamLogger extends AbstractLogger
                 'MessageRewrite'   => new Plugins\MessageRewritePlugin("[{time}] {level}: %s"),
             ]);
         }
-
-        if ($fileflags & AbstractFileType::FLAG_NESTING) {
+        elseif ($fileflags & AbstractFileType::FLAG_NESTING) {
             $plugins = array_merge($plugins, [
                 'ThrowableMangle' => new Plugins\ThrowableManglePlugin(false, 'traces'),
             ]);

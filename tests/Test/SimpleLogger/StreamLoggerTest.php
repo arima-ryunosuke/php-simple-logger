@@ -2,6 +2,7 @@
 
 namespace ryunosuke\Test\SimpleLogger;
 
+use Exception;
 use ryunosuke\SimpleLogger\Plugins\LevelFilterPlugin;
 use ryunosuke\SimpleLogger\StreamLogger;
 use ryunosuke\Test\AbstractTestCase;
@@ -120,6 +121,11 @@ class StreamLoggerTest extends AbstractTestCase
         $logger = new StreamLogger($logfiole = "$directory/log.yml");
         $logger->setPresetPlugins()->debug('message');
         that($logfiole)->fileContainsAll(['level: DEBUG', 'message: message']);
+
+        // exception
+        $logger = new StreamLogger($logfiole = "$directory/ex.txt");
+        $logger->setPresetPlugins()->debug(new Exception('message'));
+        that($logfiole)->fileContainsAll(["Stack trace:", "message"]);
     }
 
     function test_supports()
