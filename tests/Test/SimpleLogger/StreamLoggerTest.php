@@ -3,6 +3,7 @@
 namespace ryunosuke\Test\SimpleLogger;
 
 use Exception;
+use ryunosuke\SimpleLogger\FileType\Csv;
 use ryunosuke\SimpleLogger\Plugins\LevelFilterPlugin;
 use ryunosuke\SimpleLogger\StreamLogger;
 use ryunosuke\Test\AbstractTestCase;
@@ -13,14 +14,16 @@ class StreamLoggerTest extends AbstractTestCase
     {
         $directory = $this->emptyDirectory();
 
-        $logger = new StreamLogger("file://$directory/file-log.txt", [
-            'mode'    => 'a',
-            'context' => ['secure' => false], // for converage
-            'suffix'  => '-His',              // for converage
+        $logger = new StreamLogger("file://$directory/file-log.csv", [
+            'mode'     => 'a',
+            'filetype' => fn() => null,
+            'context'  => ['secure' => false], // for converage
+            'suffix'   => '-His',              // for converage
         ]);
         that($logger)->metadata['mode']->is('a');
-        that($logger)->metadata['uri']->is(strtr("file://$directory/file-log" . date('-His') . ".txt", ['\\' => '/']));
-        that($logger)->metadata['filename']->is(strtr("file://$directory/file-log.txt", ['\\' => '/']));
+        that($logger)->metadata['uri']->is(strtr("file://$directory/file-log" . date('-His') . ".csv", ['\\' => '/']));
+        that($logger)->metadata['filename']->is(strtr("file://$directory/file-log.csv", ['\\' => '/']));
+        that($logger)->filetype->isInstanceOf(Csv::class);
     }
 
     function test_withBasename()

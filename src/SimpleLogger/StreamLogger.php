@@ -31,13 +31,14 @@ class StreamLogger extends AbstractLogger
         }
 
         // default options
-        $options = array_replace([
+        $filetyper = fn($extension) => AbstractFileType::createByExtension($extension);
+        $options   = array_replace([
             'mode'     => 'ab',
             'context'  => null,
             'suffix'   => null,
             'flock'    => false,
             'flush'    => true,
-            'filetype' => fn($extension) => AbstractFileType::createByExtension($extension),
+            'filetype' => $filetyper,
         ], $options);
 
         // ready context
@@ -57,9 +58,10 @@ class StreamLogger extends AbstractLogger
         }
 
         $logfile        = $this->_appendSuffix($filename, $options['suffix']);
+        $extension      = pathinfo($filename, PATHINFO_EXTENSION);
         $this->handle   = fopen($logfile, $options['mode'], false, $context);
         $this->metadata = stream_get_meta_data($this->handle) + ['filename' => $filename, 'first' => true];
-        $this->filetype = $options['filetype'](pathinfo($filename, PATHINFO_EXTENSION));
+        $this->filetype = $options['filetype']($extension) ?? $filetyper($extension);
         $this->options  = $options;
     }
 
