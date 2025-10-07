@@ -20,9 +20,9 @@ class StreamLoggerTest extends AbstractTestCase
             'context'  => ['secure' => false], // for converage
             'suffix'   => '-His',              // for converage
         ]);
+        that($logger)->_open()->is(true);
         that($logger)->metadata['mode']->is('a');
         that($logger)->metadata['uri']->is(strtr("file://$directory/file-log" . date('-His') . ".csv", ['\\' => '/']));
-        that($logger)->metadata['filename']->is(strtr("file://$directory/file-log.csv", ['\\' => '/']));
         that($logger)->filetype->isInstanceOf(Csv::class);
     }
 

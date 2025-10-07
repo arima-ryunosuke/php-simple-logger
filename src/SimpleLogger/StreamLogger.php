@@ -12,6 +12,8 @@ class StreamLogger extends AbstractLogger
 {
     use LoggerTrait;
 
+    /*readonly*/
+    private string $filename;
     /** @var resource */
     private       $handle;
     private array $metadata;
@@ -41,15 +43,6 @@ class StreamLogger extends AbstractLogger
             'filetype' => $filetyper,
         ], $options);
 
-        // ready context
-        $context = $options['context'];
-        if (is_array($context)) {
-            $scheme  = parse_url($filename, PHP_URL_SCHEME);
-            $context = stream_context_create([
-                $scheme => $context,
-            ]);
-        }
-
         // normalize suffix
         if ($options['suffix'] !== null) {
             if (!$options['suffix'] instanceof Closure) {
@@ -57,10 +50,8 @@ class StreamLogger extends AbstractLogger
             }
         }
 
-        $logfile        = $this->_appendSuffix($filename, $options['suffix']);
         $extension      = pathinfo($filename, PATHINFO_EXTENSION);
-        $this->handle   = fopen($logfile, $options['mode'], false, $context);
-        $this->metadata = stream_get_meta_data($this->handle) + ['filename' => $filename, 'first' => true];
+        $this->filename = $filename;
         $this->filetype = $options['filetype']($extension) ?? $filetyper($extension);
         $this->options  = $options;
     }
@@ -79,8 +70,8 @@ class StreamLogger extends AbstractLogger
 
     public function withBasename(string $basename): static
     {
-        $pathinfo = pathinfo($this->metadata['filename']);
-        $filename = "{$pathinfo['dirname']}//$basename";
+        $pathinfo = pathinfo($this->filename);
+        $filename = "{$pathinfo['dirname']}/$basename";
 
         $that = new static($filename, $this->options);
         $that->setPlugins($this->getPlugins());
@@ -90,24 +81,28 @@ class StreamLogger extends AbstractLogger
 
     public function reopen(?string $newfile = null): void
     {
+        $this->_open();
+
         $newfile ??= $this->metadata['uri'];
 
         $this->_flush();
         $this->_close();
 
         $this->handle   = fopen($newfile, $this->metadata['mode'], false, $this->metadata['wrapper_data']->context ?? null);
-        $this->metadata = stream_get_meta_data($this->handle) + ['first' => true] + $this->metadata; // keep filename
+        $this->metadata = stream_get_meta_data($this->handle) + ['first' => true] + $this->metadata;
     }
 
     public function rotate(): bool
     {
+        $this->_open();
+
         // don't have to do it every time, do it sometimes
         $this->lastRotationTime ??= microtime(true);
 
         if ((microtime(true) - $this->lastRotationTime) >= 2) {
             $this->lastRotationTime = microtime(true);
 
-            $logfile = $this->_appendSuffix($this->metadata['filename'], $this->options['suffix']);
+            $logfile = $this->_appendSuffix($this->filename, $this->options['suffix']);
             if ($logfile !== $this->metadata['uri']) {
                 $this->reopen($logfile);
 
@@ -163,8 +158,32 @@ class StreamLogger extends AbstractLogger
         return $this;
     }
 
+    protected function _open(): ?bool
+    {
+        if (isset($this->handle)) {
+            return false;
+        }
+
+        // ready context
+        $context = $this->options['context'];
+        if (is_array($context)) {
+            $scheme  = parse_url($this->filename, PHP_URL_SCHEME);
+            $context = stream_context_create([
+                $scheme => $context,
+            ]);
+        }
+
+        $logfile        = $this->_appendSuffix($this->filename, $this->options['suffix']);
+        $this->handle   = fopen($logfile, $this->options['mode'], false, $context);
+        $this->metadata = stream_get_meta_data($this->handle) + ['first' => true];
+
+        return true;
+    }
+
     protected function _write(Log $log): void
     {
+        $this->_open();
+
         $fileflags = $this->filetype->getFlags();
 
         $logarray = $log->arrayize(!($fileflags & AbstractFileType::FLAG_NESTING), !($fileflags & AbstractFileType::FLAG_DATATYPE));
@@ -187,6 +206,8 @@ class StreamLogger extends AbstractLogger
 
     protected function _fstat(): ?array
     {
+        $this->_open();
+
         return $this->_tryStreamMethod('stream_stat', $this->handle);
     }
 
@@ -195,6 +216,9 @@ class StreamLogger extends AbstractLogger
         if (!$this->options['flock']) {
             return null;
         }
+
+        $this->_open();
+
         return $this->_tryStreamMethod('stream_lock', $this->handle, $operation);
     }
 
@@ -203,11 +227,16 @@ class StreamLogger extends AbstractLogger
         if (!$this->options['flush']) {
             return null;
         }
+
+        $this->_open();
+
         return $this->_tryStreamMethod('stream_flush', $this->handle);
     }
 
     protected function _close(): ?bool
     {
+        $this->_open();
+
         return $this->_tryStreamMethod('stream_close', $this->handle);
     }
 
