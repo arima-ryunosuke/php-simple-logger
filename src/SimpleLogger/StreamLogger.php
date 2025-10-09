@@ -71,7 +71,7 @@ class StreamLogger extends AbstractLogger
     public function withBasename(string $basename): static
     {
         $pathinfo = pathinfo($this->filename);
-        $filename = "{$pathinfo['dirname']}/$basename";
+        $filename = "{$pathinfo['dirname']}//$basename"; // for php://scheme
 
         $that = new static($filename, $this->options);
         $that->setPlugins($this->getPlugins());
