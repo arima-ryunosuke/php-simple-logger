@@ -154,10 +154,10 @@ class Log extends stdClass
 
     public function arrayize(bool $stringableOnly, bool $convertString): array
     {
-        $entries = array_merge([
+        $entries = array_merge($this->context, [
             'level'   => $this->level,
             'message' => $this->message,
-        ], $this->context);
+        ]);
 
         if ($this->levelUnset) {
             unset($entries['level']);

@@ -51,9 +51,9 @@ class LogTest extends AbstractTestCase
         // use level
         $log = new Log('debug', '{level} test {data1} message {data2}', ['data1' => 'DATA1']);
         that($log)->arrayize(false, false)->isSame([
+            "data1"   => "DATA1",
             "level"   => "debug",
             "message" => "{level} test {data1} message {data2}",
-            "data1"   => "DATA1",
         ]);
 
         // stringable
@@ -68,9 +68,9 @@ class LogTest extends AbstractTestCase
         $log                  = new Log('debug', '{level} test {null}', []);
         $log->context['null'] = null;
         that($log)->arrayize(true, true)->isSame([
+            "null"    => "NULL",
             "level"   => "debug",
             "message" => "{level} test {null}",
-            "null"    => "NULL",
         ]);
 
         // order
@@ -86,8 +86,8 @@ class LogTest extends AbstractTestCase
         $log = new Log('debug', '{level} test {data1} message', ['data1' => 'DATA1']);
         $log->setLevelUnset(true);
         that($log)->arrayize(false, false)->isSame([
-            "message" => "{level} test {data1} message",
             "data1"   => "DATA1",
+            "message" => "{level} test {data1} message",
         ]);
     }
 
