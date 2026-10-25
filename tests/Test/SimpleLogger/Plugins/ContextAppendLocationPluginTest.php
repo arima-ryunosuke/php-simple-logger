@@ -54,8 +54,13 @@ class ContextAppendLocationPluginTest extends AbstractTestCase
         $lines[] = $wrapper->noStop($logger, null);
         $wrapper->delegate($logger, 'info', $lines[] = __LINE__);
         $wrapper->nest($logger, $lines[] = __LINE__);
-        $logger->log('info', $lines[] = __LINE__);
+        $logger->log('info', $lines[] = __LINE__, ['arg' => 123]);
         $logger->debug($lines[] = __LINE__);
+
+        that($logs[3])->context->subsetEquals([
+            "arg"    => 123,
+            "method" => "test_apply",
+        ]);
 
         that(array_column(array_map(fn(Log $log) => $log->arrayize(false, false), $logs), 'lineNo'))->is($lines);
         that(array_column(array_map(fn(Log $log) => $log->arrayize(false, false), $logs), 'method'))->is([

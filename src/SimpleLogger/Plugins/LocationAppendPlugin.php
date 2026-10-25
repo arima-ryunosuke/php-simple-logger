@@ -32,7 +32,7 @@ class LocationAppendPlugin extends AbstractPlugin
                     'type'     => $traces[$caller]['type'] ?? $traces[$n - 1]['type'] ?? null,
                     'function' => $traces[$caller]['function'] ?? $traces[$n - 1]['function'] ?? null,
                 ];
-                $log->context = Log::arrayPickup($extra, $this->entryMap) + $log->context;
+                $log->context = array_replace($log->context, Log::arrayPickup($extra, $this->entryMap));
                 break;
             }
             if (isset($trace['class'], $trace['function'])) {
