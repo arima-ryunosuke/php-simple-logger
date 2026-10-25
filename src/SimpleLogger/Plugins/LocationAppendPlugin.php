@@ -26,11 +26,11 @@ class LocationAppendPlugin extends AbstractPlugin
         foreach ($traces as $n => $trace) {
             if (($trace['object'] ?? null) instanceof LoggerInterface) {
                 $extra = [
-                    'file'     => $traces[$caller + 1]['file'] ?? $traces[$n - 1]['file'] ?? null,
-                    'line'     => $traces[$caller + 1]['line'] ?? $traces[$n - 1]['line'] ?? null,
-                    'class'    => $traces[$caller]['class'] ?? $traces[$n - 1]['class'] ?? null,
-                    'type'     => $traces[$caller]['type'] ?? $traces[$n - 1]['type'] ?? null,
-                    'function' => $traces[$caller]['function'] ?? $traces[$n - 1]['function'] ?? null,
+                    'file'     => $traces[$caller]['file'] ?? $traces[$n]['file'] ?? null,
+                    'line'     => $traces[$caller]['line'] ?? $traces[$n]['line'] ?? null,
+                    'class'    => $traces[$caller - 1]['class'] ?? $traces[$n - 1]['class'] ?? null,
+                    'type'     => $traces[$caller - 1]['type'] ?? $traces[$n - 1]['type'] ?? null,
+                    'function' => $traces[$caller - 1]['function'] ?? $traces[$n - 1]['function'] ?? null,
                 ];
                 $log->context = array_replace($log->context, Log::arrayPickup($extra, $this->entryMap));
                 break;
@@ -40,7 +40,7 @@ class LocationAppendPlugin extends AbstractPlugin
                     $fixed = true;
                 }
                 if (!$fixed) {
-                    $caller = $n;
+                    $caller = $n + 1;
                 }
             }
         }
