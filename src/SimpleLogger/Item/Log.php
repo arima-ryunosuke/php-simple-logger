@@ -57,31 +57,22 @@ class Log extends stdClass
     ];
 
     public null|int|string $level;
+    public mixed           $message;
+    public array           $context;
 
-    public mixed $message;
-
-    public array $context;
-
-    private array $order;
-
-    private bool $levelUnset;
-
-    private bool $filterConsumption;
+    private bool  $levelUnset;
+    private bool  $contextConsumption;
+    private array $contextOrder;
 
     public function __construct(null|int|string $level, mixed $message, array $context)
     {
-        $this->level             = $level;
-        $this->message           = $message;
-        $this->context           = $context;
-        $this->order             = [];
-        $this->levelUnset        = false;
-        $this->filterConsumption = false;
-    }
+        $this->level   = $level;
+        $this->message = $message;
+        $this->context = $context;
 
-    public function setOrder(array $order): self
-    {
-        $this->order = array_combine($order, $order);
-        return $this;
+        $this->levelUnset         = false;
+        $this->contextConsumption = false;
+        $this->contextOrder       = [];
     }
 
     public function setLevelUnset(bool $unset): self
@@ -90,16 +81,22 @@ class Log extends stdClass
         return $this;
     }
 
-    public function setFilterConsumption(bool $filterConsumption): self
+    public function setContextConsumption(bool $contextConsumption): self
     {
-        $this->filterConsumption = $filterConsumption;
+        $this->contextConsumption = $contextConsumption;
+        return $this;
+    }
+
+    public function setContextOrder(array $contextOrder): self
+    {
+        $this->contextOrder = array_combine($contextOrder, $contextOrder);
         return $this;
     }
 
     public function interpolate(): self
     {
         if (is_string($this->message)) {
-            $placeholder = $this->filterConsumption ? new stdClass() : null;
+            $placeholder = $this->contextConsumption ? new stdClass() : null;
             $main        = function (array $context, array $parents) use (&$main, $placeholder) {
                 foreach ($context as $key => $value) {
                     if (preg_match('#\A[a-zA-Z0-9_.]+\z#u', $key)) {
@@ -175,7 +172,7 @@ class Log extends stdClass
             }
         }
 
-        return self::arrayPickup($entries, $this->order) + $entries;
+        return self::arrayPickup($entries, $this->contextOrder) + $entries;
     }
 
     // <editor-fold desc="Utils">

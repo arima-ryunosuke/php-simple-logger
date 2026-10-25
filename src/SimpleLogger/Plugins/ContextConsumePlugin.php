@@ -13,6 +13,6 @@ class ContextConsumePlugin extends AbstractPlugin
 
     public function apply(Log $log): ?Log
     {
-        return $log->setFilterConsumption(true);
+        return $log->setContextConsumption(true);
     }
 }

@@ -11,7 +11,7 @@ class ContextOrderPluginTest extends AbstractTestCase
     function test_apply()
     {
         $plugin = new ContextOrderPlugin(['a', 'b', 'c']);
-        that($plugin)->apply(new Log('debug', 'message', []))->order->is([
+        that($plugin)->apply(new Log('debug', 'message', []))->contextOrder->is([
             "a" => "a",
             "b" => "b",
             "c" => "c",

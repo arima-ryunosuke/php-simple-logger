@@ -37,7 +37,7 @@ class LogTest extends AbstractTestCase
 
         // consumption
         $log = new Log('debug', '{level} test {a.b.c}, {A.B.C} message', ['a' => ['b' => ['c' => 'z']], 'A' => ['B' => ['C' => 'y', 'z']]]);
-        $log->setFilterConsumption(true);
+        $log->setContextConsumption(true);
         that($log)->interpolate()->message->is('debug test z, y message');
         that($log)->interpolate()->context->is(['A' => ['B' => ['z']]]);
 
@@ -75,7 +75,7 @@ class LogTest extends AbstractTestCase
 
         // order
         $log = new Log('debug', '{level} test {data1} message', ['data1' => 'DATA1']);
-        $log->setOrder(['message', 'data1', 'undefine', 'level']);
+        $log->setContextOrder(['message', 'data1', 'undefine', 'level']);
         that($log)->arrayize(false, false)->isSame([
             "message" => "{level} test {data1} message",
             "data1"   => "DATA1",

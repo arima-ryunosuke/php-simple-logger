@@ -15,6 +15,6 @@ class ContextOrderPlugin extends AbstractPlugin
 
     public function apply(Log $log): ?Log
     {
-        return $log->setOrder($this->order);
+        return $log->setContextOrder($this->order);
     }
 }
