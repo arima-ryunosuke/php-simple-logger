@@ -61,6 +61,7 @@ class Log extends stdClass
     public array           $context;
 
     private bool  $levelUnset;
+    private bool  $messageInterpolation;
     private bool  $contextConsumption;
     private array $contextOrder;
 
@@ -70,14 +71,21 @@ class Log extends stdClass
         $this->message = $message;
         $this->context = $context;
 
-        $this->levelUnset         = false;
-        $this->contextConsumption = false;
-        $this->contextOrder       = [];
+        $this->levelUnset           = false;
+        $this->messageInterpolation = true;
+        $this->contextConsumption   = false;
+        $this->contextOrder         = [];
     }
 
     public function setLevelUnset(bool $unset): self
     {
         $this->levelUnset = $unset;
+        return $this;
+    }
+
+    public function setMessageInterpolation(bool $interpolation): self
+    {
+        $this->messageInterpolation = $interpolation;
         return $this;
     }
 
@@ -95,7 +103,7 @@ class Log extends stdClass
 
     public function interpolate(): self
     {
-        if (is_string($this->message)) {
+        if ($this->messageInterpolation && is_string($this->message)) {
             $placeholder = $this->contextConsumption ? new stdClass() : null;
             $main        = function (array $context, array $parents) use (&$main, $placeholder) {
                 foreach ($context as $key => $value) {
