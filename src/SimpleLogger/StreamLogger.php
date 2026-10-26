@@ -187,16 +187,16 @@ class StreamLogger extends AbstractLogger
         $fileflags = $this->filetype->getFlags();
 
         $logarray = $log->arrayize(!($fileflags & AbstractFileType::FLAG_NESTING), !($fileflags & AbstractFileType::FLAG_DATATYPE));
+        $loghead  = $this->metadata['first'] ? $this->filetype->head($logarray) : '';
         $logtext  = $this->filetype->encode($logarray);
+
+        $this->metadata['first'] = false;
 
         $this->rotate();
 
         $this->_lock(LOCK_EX);
-        if ($this->metadata['first']) {
-            $this->metadata['first'] = false;
-            if (($this->_fstat()['size'] ?? null) === 0) {
-                fwrite($this->handle, $this->filetype->head($logarray));
-            }
+        if (strlen($loghead) && ($this->_fstat()['size'] ?? null) === 0) {
+            fwrite($this->handle, $loghead);
         }
         fwrite($this->handle, $logtext);
         $this->_lock(LOCK_UN);
