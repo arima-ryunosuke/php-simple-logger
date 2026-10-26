@@ -50,8 +50,8 @@ StreamLogger の他に ChainLogger というものがあります。
 
 ```
 $logger = new \ryunosuke\SimpleLogger\ChainLogger([
-    (new \ryunosuke\SimpleLogger\StreamLogger('file://path/to/log.jsonl'))->setPresetPlugins()->prependPlugin(new \ryunosuke\SimpleLogger\Plugins\LevelFilterPlugin('notice')),
-    (new \ryunosuke\SimpleLogger\StreamLogger('smtp://hoge@example.com/log.txt'))->setPresetPlugins()->prependPlugin(new \ryunosuke\SimpleLogger\Plugins\LevelFilterPlugin('error')),
+    (new \ryunosuke\SimpleLogger\StreamLogger('file://path/to/log.jsonl'))->setPresetPlugins()->prependPlugin(new \ryunosuke\SimpleLogger\Plugins\LogFilterByLevelPlugin('notice')),
+    (new \ryunosuke\SimpleLogger\StreamLogger('smtp://hoge@example.com/log.txt'))->setPresetPlugins()->prependPlugin(new \ryunosuke\SimpleLogger\Plugins\LogFilterByLevelPlugin('error')),
 ]);
 $logger->notice('notice message');
 $logger->alert('alert message');
@@ -80,10 +80,46 @@ monolog における Processer は Plugin 機構を用いています。
 - AbstractPlugin
     - プラグインの抽象クラスです
     - 最低限 apply メソッドを実装する必要があります
-    - apply はログに何らかの変更を加えます。null を返すとそのログはスキップされます（LevelFilterPlugin が好例です）
-- ClosurePlugin
+    - apply はログに何らかの変更を加えます。null を返すとそのログはスキップされます（LogFilterByLevelPlugin が好例です）
+- LogCallbackPlugin
+    - メッセージ・コンテキストに callable が来た場合にコールバックされます
+    - `$logger->debug(function () {...})` などとすればログ生成のコスト自体を抑えることができます
+- LogClosurePlugin
     - 指定したクロージャがコールバックされます
     - アドホックなプラグインを作成するためには無名クラスで `new class() extends AbstractPlugin{...}` する必要がありますがそれを嫌ってクロージャだけで作成できるようにしたものです
+- LogFilterByLevelPlugin
+    - ログレベルでのフィルタです。ロガーであれば実質的に必須でしょう
+    - 「NOTICE 以上」のような指定だけではなく、「NOTICE 以上 ERROR 以下」のような指定も可能です
+- LogFilterByTagPlugin
+    - コンテキストに指定した tag が含まれている場合にログるようになります
+    - ChainLogger で集約して、各々のロガーが書き込みという場合に使えます
+- LogMangleThrowablePlugin
+    - 例外オブジェクトをよしなにハンドリングします
+    - ログメッセージ自体が Throwable であるとか {exception} コンテキストがあるかなどでなんとかして Throwable を見やすく整形します
+- LogSuppressPlugin
+    - 指定した秒数の間、同一ログの出力を抑制します
+    - 基本的には DEBUG レベルで用います
+- LevelAutoPlugin
+    - ログレベルに null が来た場合に自動で設定します
+    - context の level, exception, message 自体が exception などに基づいて自動設定します
+- LevelFromPhpPlugin
+    - php のエラー定数（E_ERROR 等）を標準ログレベルに変換します
+    - これにより log メソッドに E_ERROR 等を与えられるようになります
+    - 一部の定数は値が重複しているため、log メソッドに LOG_ERR などを与える使い方をしていると値が乱れることになります。その回避策として負数の php エラー定数が来ても変換できるようになっています
+- LevelNormalizePlugin
+    - ログレベルを文字列化します
+    - psr3 はログレベルの型を規約していないため、渡ってくるレベルは int だったり大文字だったり小文字だったりします。それを文字列に統一します
+- LevelUnsetPlugin
+    - level を伏せます
+    - 普通は使いません。「レベルすら不要」というある特殊な状況で使います
+- MessageInterpolatePlugin
+    - `{context.key}` 形式の補完の有効無効を設定します
+    - json 等の構造化ログでは埋め込み機能が邪魔になることもあるでしょう
+- MessageRewritePlugin
+    - ログメッセージを書き換えます
+- MessageStringifyPlugin
+    - ログメッセージに非 stringable が来た場合に文字列化します
+    - `$logger->debug([1, 2, 3])` のように非 stringable でもログられるようにできます
 - ContextAppendPlugin
     - 任意のエントリをコンテキストに加えます
     - 典型的には日時です。他にホスト名やプロセスIDなどもログとしては有用でしょう
@@ -98,41 +134,8 @@ monolog における Processer は Plugin 機構を用いています。
     - コンテキストの出力順を指定します
     - 例えば「行番号・…雑多なもの…・ファイル名」だったらログが見にくくて仕方ないでしょう。また大抵のログは「日時・ログレベル」が冒頭に来ている方が有用です
     - そういった並び順を指定します。出力形式が構造化テキストでないと指定に意味はありません
-- LevelAutoPlugin
-    - ログレベルに null が来た場合に自動で設定します
-    - context の level, exception, message 自体が exception などに基づいて自動設定します
-- LevelFilterPlugin
-    - ログレベルでのフィルタです。ロガーであれば実質的に必須でしょう
-    - 「NOTICE 以上」のような指定だけではなく、「NOTICE 以上 ERROR 以下」のような指定も可能です
-- LevelFromPhpPlugin
-    - php のエラー定数（E_ERROR 等）を標準ログレベルに変換します
-    - これにより log メソッドに E_ERROR 等を与えられるようになります
-    - 一部の定数は値が重複しているため、log メソッドに LOG_ERR などを与える使い方をしていると値が乱れることになります。その回避策として負数の php エラー定数が来ても変換できるようになっています
-- LevelNormalizePlugin
-    - ログレベルを文字列化します
-    - psr3 はログレベルの型を規約していないため、渡ってくるレベルは int だったり大文字だったり小文字だったりします。それを文字列に統一します
-- LevelUnsetPlugin
-    - level を伏せます
-    - 普通は使いません。「レベルすら不要」というある特殊な状況で使います
-- LocationAppendPlugin
+- ContextAppendLocationPlugin
     - ログメソッドの呼び出し場所（ファイル・行番号など）をコンテキストに加えます
-- MessageCallbackPlugin
-    - ログメッセージに callable が来た場合にコールバックされます
-    - `$logger->debug(function () {...})` などとすればログ生成のコスト自体を抑えることができます
-- MessageStringifyPlugin
-    - ログメッセージに非 stringable が来た場合に文字列化します
-    - `$logger->debug([1, 2, 3])` のように非 stringable でもログられるようにできます
-- MessageRewritePlugin
-    - ログメッセージを書き換えます
-- SuppressPlugin
-    - 指定した秒数の間、同一ログの出力を抑制します
-    - 基本的には DEBUG レベルで用います
-- TagFilterPlugin
-    - コンテキストに指定した tag が含まれている場合にログるようになります
-    - ChainLogger で集約して、各々のロガーが書き込みという場合に使えます
-- ThrowableManglePlugin
-    - 例外オブジェクトをよしなにハンドリングします
-    - ログメッセージ自体が Throwable であるとか {exception} コンテキストがあるかなどでなんとかして Throwable を見やすく整形します
 
 ## Note
 
@@ -160,6 +163,18 @@ MIT
 - メジャー: 大規模な互換性破壊の際にアップします（アーキテクチャ、クラス構造の変更など）
 - マイナー: 小規模な互換性破壊の際にアップします（引数の変更、タイプヒントの追加など）
 - パッチ: 互換性破壊はありません（デフォルト引数の追加や、新たなクラスの追加、コードフォーマットなど）
+
+### 1.1.12
+
+- [fixbug] 呼び出しが encode->head になっていた不具合
+- [feature] CSV に alignment 機能を追加
+- [fixbug] class 内じゃない時にファイルと行番号がズレている不具合
+- [fixbug] LocationAppendPlugin が append になっていない不具合
+- [feature] メッセージ補完機能をオフにするプラグイン
+- [refactor] プラグインの命名規則を変更
+- [refactor] プロパティ名が気持ち悪かったので修正
+- [refactor] php8 対応時の変更漏れ
+- Revert "[fixbug] オレオレキー が context より優先されている"
 
 ### 1.1.11
 
