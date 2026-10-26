@@ -7,28 +7,28 @@ use DomainException;
 use Exception;
 use RuntimeException;
 use ryunosuke\SimpleLogger\Item\Log;
-use ryunosuke\SimpleLogger\Plugins\ThrowableManglePlugin;
+use ryunosuke\SimpleLogger\Plugins\LogMangleThrowablePlugin;
 use ryunosuke\Test\AbstractTestCase;
 
-class ThrowableManglePluginTest extends AbstractTestCase
+class LogMangleThrowablePluginTest extends AbstractTestCase
 {
     function test_apply()
     {
-        $plugin = new ThrowableManglePlugin(false, "key");
+        $plugin = new LogMangleThrowablePlugin(false, "key");
         $exlog  = new Log('debug', new Exception('message'), []);
         $cxlog  = new Log('debug', "this {exception}", ['exception' => new Exception('exmsg')]);
         that($plugin)->apply($exlog)->message->is("message");
         that($plugin)->apply($exlog)->context['key']->isArray();
         that($plugin)->apply($cxlog)->context['exception']->is('exmsg');
 
-        $plugin = new ThrowableManglePlugin(false, "");
+        $plugin = new LogMangleThrowablePlugin(false, "");
         $exlog  = new Log('debug', new Exception('message'), []);
         $cxlog  = new Log('debug', "this {exception}", ['exception' => new Exception('exmsg')]);
         that($plugin)->apply($exlog)->message->is("message");
         that($plugin)->apply($exlog)->context->notHasKey("");
         that($plugin)->apply($cxlog)->context['exception']->is('exmsg');
 
-        $plugin = new ThrowableManglePlugin(true);
+        $plugin = new LogMangleThrowablePlugin(true);
         $exlog  = new Log('debug', new Exception('message'), []);
         $cxlog  = new Log('debug', "this {exception}", ['exception' => new Exception('exmsg')]);
         that($plugin)->apply($exlog)->message->contains(__FILE__);
@@ -38,7 +38,7 @@ class ThrowableManglePluginTest extends AbstractTestCase
 
     function test_apply_arg()
     {
-        $plugin = new ThrowableManglePlugin(false, "key", 10);
+        $plugin = new LogMangleThrowablePlugin(false, "key", 10);
         $exlog  = new Log('debug', provideNestException(), []);
         that($plugin)->apply($exlog)->message->is("message1");
         $args = that($exlog->context['key'][0]['trace'][1]['args']);
@@ -52,7 +52,7 @@ class ThrowableManglePluginTest extends AbstractTestCase
         $args[7]->isArray();
         $args[8]->isString();
 
-        $plugin  = new ThrowableManglePlugin(true, "key", 100);
+        $plugin  = new LogMangleThrowablePlugin(true, "key", 100);
         $exlog   = new Log('debug', provideNestException(), []);
         $message = that($plugin)->apply($exlog)->message;
         $message->contains("message1");

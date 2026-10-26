@@ -5,6 +5,7 @@ namespace ryunosuke\SimpleLogger\Plugins;
 use Psr\Log\LogLevel;
 use ryunosuke\SimpleLogger\Item\Log;
 
+/** @deprecated use LogFilterByLevelPlugin */
 class LevelFilterPlugin extends AbstractPlugin
 {
     private int $lowLevel;

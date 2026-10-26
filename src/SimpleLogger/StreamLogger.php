@@ -123,7 +123,7 @@ class StreamLogger extends AbstractLogger
             'TimeAppend'      => new Plugins\ContextAppendPlugin([
                 'time' => fn() => (new DateTime())->format(DateTime::RFC3339_EXTENDED),
             ]),
-            'MessageCallback' => new Plugins\MessageCallbackPlugin(),
+            'MessageCallback' => new Plugins\LogCallbackPlugin(),
         ];
 
         // by filetype
@@ -131,19 +131,19 @@ class StreamLogger extends AbstractLogger
 
         if ($fileflags & AbstractFileType::FLAG_PLAIN) {
             $plugins = array_merge($plugins, [
-                'ThrowableMangle'  => new Plugins\ThrowableManglePlugin(true, 'chains', /* for future scope (ini_get('zend.exception_ignore_args') ? 0 : 1024) */),
+                'ThrowableMangle'  => new Plugins\LogMangleThrowablePlugin(true, 'chains', /* for future scope (ini_get('zend.exception_ignore_args') ? 0 : 1024) */),
                 'MessageStringify' => new Plugins\MessageStringifyPlugin(),
                 'MessageRewrite'   => new Plugins\MessageRewritePlugin("[{time}] {level}: %s"),
             ]);
         }
         elseif ($fileflags & AbstractFileType::FLAG_NESTING) {
             $plugins = array_merge($plugins, [
-                'ThrowableMangle' => new Plugins\ThrowableManglePlugin(false, 'traces'),
+                'ThrowableMangle' => new Plugins\LogMangleThrowablePlugin(false, 'traces'),
             ]);
         }
         else {
             $plugins = array_merge($plugins, [
-                'ThrowableMangle' => new Plugins\ThrowableManglePlugin(false, ''),
+                'ThrowableMangle' => new Plugins\LogMangleThrowablePlugin(false, ''),
             ]);
         }
 

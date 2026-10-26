@@ -9,6 +9,7 @@ use ReflectionParameter;
 use ryunosuke\SimpleLogger\Item\Log;
 use Throwable;
 
+/** @deprecated use LogMangleThrowablePlugin */
 class ThrowableManglePlugin extends AbstractPlugin
 {
     private bool   $asString;

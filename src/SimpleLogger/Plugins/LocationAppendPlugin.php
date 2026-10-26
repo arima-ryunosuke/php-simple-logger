@@ -5,6 +5,7 @@ namespace ryunosuke\SimpleLogger\Plugins;
 use Psr\Log\LoggerInterface;
 use ryunosuke\SimpleLogger\Item\Log;
 
+/** @deprecated use ContextAppendLocationPlugin */
 class LocationAppendPlugin extends AbstractPlugin
 {
     private array $entryMap;

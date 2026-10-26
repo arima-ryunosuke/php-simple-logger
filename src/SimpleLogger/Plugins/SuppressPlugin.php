@@ -6,6 +6,7 @@ use Closure;
 use ryunosuke\SimpleLogger\Item\Log;
 use Throwable;
 
+/** @deprecated use LogSuppressPlugin */
 class SuppressPlugin extends AbstractPlugin
 {
     private int     $aggregationTime;

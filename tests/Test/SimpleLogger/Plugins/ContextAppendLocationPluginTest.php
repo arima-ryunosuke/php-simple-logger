@@ -4,10 +4,10 @@ namespace ryunosuke\Test\SimpleLogger\Plugins;
 
 use ArrayLogger;
 use ryunosuke\SimpleLogger\Item\Log;
-use ryunosuke\SimpleLogger\Plugins\LocationAppendPlugin;
+use ryunosuke\SimpleLogger\Plugins\ContextAppendLocationPlugin;
 use ryunosuke\Test\AbstractTestCase;
 
-class LocationAppendPluginTest extends AbstractTestCase
+class ContextAppendLocationPluginTest extends AbstractTestCase
 {
     function test_apply()
     {
@@ -45,7 +45,7 @@ class LocationAppendPluginTest extends AbstractTestCase
         };
 
         $logger = new ArrayLogger($logs);
-        $logger->appendPlugin(new LocationAppendPlugin(['line' => 'lineNo', 'function' => 'method'], [
+        $logger->appendPlugin(new ContextAppendLocationPlugin(['line' => 'lineNo', 'function' => 'method'], [
             get_class($wrapper) . "::delegate",
             get_class($wrapper) . "::nest",
         ]));

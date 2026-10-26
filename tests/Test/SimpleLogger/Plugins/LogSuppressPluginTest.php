@@ -3,14 +3,14 @@
 namespace ryunosuke\Test\SimpleLogger\Plugins;
 
 use ryunosuke\SimpleLogger\Item\Log;
-use ryunosuke\SimpleLogger\Plugins\SuppressPlugin;
+use ryunosuke\SimpleLogger\Plugins\LogSuppressPlugin;
 use ryunosuke\Test\AbstractTestCase;
 
-class SuppressPluginTest extends AbstractTestCase
+class LogSuppressPluginTest extends AbstractTestCase
 {
     function test_apply()
     {
-        $plugin = new SuppressPlugin(1, sys_get_temp_dir() . '/agg1.txt');
+        $plugin = new LogSuppressPlugin(1, sys_get_temp_dir() . '/agg1.txt');
 
         that($plugin)->apply(new Log('debug', 'message', ['hoge' => '1']))->isNotNull();
         that($plugin)->apply(new Log('debug', 'message', ['hoge' => '1']))->isNull();
@@ -30,7 +30,7 @@ class SuppressPluginTest extends AbstractTestCase
     {
         $log = sys_get_temp_dir() . '/agg2.txt';
         file_put_contents($log, '<?php hoge');
-        $plugin = new SuppressPlugin(1, $log);
+        $plugin = new LogSuppressPlugin(1, $log);
 
         that($plugin)->apply(new Log('debug', 'message1', []))->isNotNull();
         sleep(1);

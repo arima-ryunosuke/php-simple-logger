@@ -5,6 +5,7 @@ namespace ryunosuke\SimpleLogger\Plugins;
 use Closure;
 use ryunosuke\SimpleLogger\Item\Log;
 
+/** @deprecated use LogClosurePlugin */
 class ClosurePlugin extends AbstractPlugin
 {
     private Closure $closure;

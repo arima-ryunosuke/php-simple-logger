@@ -4,6 +4,7 @@ namespace ryunosuke\SimpleLogger\Plugins;
 
 use ryunosuke\SimpleLogger\Item\Log;
 
+/** @deprecated use LogFilterByTagPlugin */
 class TagFilterPlugin extends AbstractPlugin
 {
     private array $target;

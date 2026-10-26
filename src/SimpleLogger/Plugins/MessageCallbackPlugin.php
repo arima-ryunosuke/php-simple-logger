@@ -4,6 +4,10 @@ namespace ryunosuke\SimpleLogger\Plugins;
 
 use ryunosuke\SimpleLogger\Item\Log;
 
+/**
+ * @deprecated use LogCallbackPlugin
+ * @codeCoverageIgnore
+ */
 class MessageCallbackPlugin extends AbstractPlugin
 {
     public function __construct()
